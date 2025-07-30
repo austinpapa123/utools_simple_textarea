@@ -1,6 +1,6 @@
 UTools Simple TextArea Plugin<br/>
 
-for personal use right now<br/>
+for personal use right now<br/><br/>
 utools plugin dev refer to https://www.u-tools.cn/docs/developer/basic/getting-started.html <br/><br/>
 Issues remaining:<br/>
 1. kind of lagging when typing to fast
