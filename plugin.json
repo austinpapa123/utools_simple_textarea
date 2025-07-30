@@ -1,0 +1,13 @@
+{
+  "logo": "logo2.png",
+  "main": "index.html",
+  "features": [
+    {
+      "code": "textarea",
+      "cmds": [
+        "simple_textarea"
+      ],
+      "explain": "simple_textarea"
+    }
+  ]
+}

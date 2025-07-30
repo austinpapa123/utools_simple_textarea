@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Textarea Plugin</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: #222;
+      overflow: hidden; /* prevent whole window scrolling */
+    }
+    body {
+      display: flex;
+      align-items: stretch;
+      justify-content: stretch;
+    }
+    #container {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    textarea {
+      width: 100%;
+      height: 100%;
+      padding: 12px;
+      box-sizing: border-box;
+      background: #222;
+      color: #fff;
+      font-size: 13px;
+      font-weight: bold;
+      font-family: sans-serif;
+      border: none;
+      outline: none;
+      resize: none;
+      overflow: hidden; /* hide scrollbars */
+      line-height: 1.5;
+      white-space: pre; /* no wrapping unless explicitly \n */
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <textarea id="simple-textarea" placeholder="Type here..." spellcheck="false"></textarea>
+  </div>
+  <script>
+    const STORAGE_KEY = 'simple_textarea_content';
+    const textarea = document.getElementById('simple-textarea');
+
+    function getMaxRowsCols() {
+      const style = window.getComputedStyle(textarea);
+      const fontSize = parseFloat(style.fontSize) || 13;
+      const paddingY = 24; // 12px top + bottom
+      const paddingX = 24; // 12px left + right
+      const lineHeight = fontSize * 1.5;
+      const charWidth = fontSize * 0.6;
+
+      const rows = Math.floor((window.innerHeight - paddingY) / lineHeight);
+      const cols = Math.floor((window.innerWidth - paddingX) / charWidth);
+      return { rows, cols };
+    }
+
+
+    function enforceLimit() {
+      const { rows, cols } = getMaxRowsCols();
+      let lines = textarea.value.split('\n');
+
+      // limit number of lines
+      if (lines.length > rows) {
+        lines = lines.slice(0, rows);
+      }
+
+      // limit each line's length
+      lines = lines.map(line => line.slice(0, cols));
+
+      textarea.value = lines.join('\n');
+    }
+
+    // save to uTools DB
+    function saveContent() {
+      console.log("saveContent()");
+      if (window.utools?.dbStorage) {
+        console.log("window.utools.dbStorage exists " + textarea.value);
+        window.utools.dbStorage.setItem(STORAGE_KEY, textarea.value);
+      }
+    }
+
+    // load from DB on open
+    function loadContent() {
+      console.log("loadContent()");
+      if (window.utools?.dbStorage) {
+        const saved = window.utools.dbStorage.getItem(STORAGE_KEY);
+        console.log("window.utools.dbStorage exists " + saved);
+        if (typeof saved === 'string') {
+          textarea.value = saved;
+          //enforceLimit(); // in case window size changed
+        }
+      }
+    }
+
+    // trim content on input
+    textarea.addEventListener('input', () => {
+      enforceLimit();
+      saveContent();
+    });
+
+    // also trim after paste
+    textarea.addEventListener('paste', () => {
+      setTimeout(() => {
+        enforceLimit();
+        saveContent();
+      }, 0);
+    });
+
+    window.addEventListener('resize', () => {
+      enforceLimit();
+    });
+
+    window.onload = () => {
+      loadContent();
+      // defer enforcement so textarea.value is rendered first
+      setTimeout(() => {
+        enforceLimit();
+      }, 0);
+    };
+
+  </script>
+</body>
+</html>
